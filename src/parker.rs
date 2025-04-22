@@ -1,4 +1,4 @@
-use std::{sync, time};
+use std::{sync, task, time};
 /// [parking::Parker]
 pub struct Parker {
     parked: sync::Mutex<bool>,
@@ -33,5 +33,13 @@ impl Parker {
         let mut parked = self.parked.lock().unwrap();
         *parked = false;
         self.cvar.notify_one();
+    }
+}
+impl task::Wake for Parker {
+    fn wake(self: sync::Arc<Self>) {
+        self.unpark();
+    }
+    fn wake_by_ref(self: &sync::Arc<Self>) {
+        self.unpark();
     }
 }
